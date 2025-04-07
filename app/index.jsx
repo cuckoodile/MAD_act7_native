@@ -1,4 +1,4 @@
-import { Link, useFocusEffect } from "expo-router";
+import { Link, router, useFocusEffect, useNavigation } from "expo-router";
 import {
   Image,
   Linking,
@@ -11,38 +11,24 @@ import {
 import { useCallback, useState } from "react";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import useGetPosts, { getPosts } from "./utils/hooks/useGetPosts";
-import EditModal from "./components/EditModal";
+import useGetPosts from "./utils/hooks/useGetPosts";
+import CardSettingsModal from "./components/CardSettingsModal";
+import usePostPosts from "./utils/hooks/usePostPosts";
+import CardDeleteDialog from "./components/CardDeleteDialog";
 
 export default function Index() {
-  // const { data: postData, isLoading } = useGetPosts();
-  const [postData, setPostData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: postData, isLoading } = useGetPosts();
   const [editModal, setEditModal] = useState(false);
   const [editModalData, setEditModalData] = useState([]);
+  const [deleteDialog, setDeleteDialog] = useState(false);
 
   // Create Post States
   const [postDescription, setPostDescription] = useState("");
   const [postMedia, setPostMedia] = useState("");
   const [postThumbnail, setPostThumbnail] = useState("");
 
-  useFocusEffect(
-    useCallback(() => {
-      refreshPost();
-    }, [])
-  );
-
-  // Handler Functions
-  const refreshPost = async () => {
-    try {
-      const posts = await getPosts()
-        .then((res) => setPostData(res))
-        .then(() => setIsLoading(false));
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      setIsLoading(false);
-    }
-  };
+  // Hooks
+  const createPostMutation = usePostPosts();
 
   const dateSanitizer = (data) => {
     return new Date(data).toLocaleString("en-US", {
@@ -57,12 +43,27 @@ export default function Index() {
     setEditModal(true);
   };
 
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (!postDescription || !postMedia || !postThumbnail) {
-      return console.log("Please fill all fields!");
+      console.log("Please fill all fields!");
+      alert("Please fill all fields!");
+      return;
     }
 
-    console.log(postDescription + postMedia + postThumbnail);
+    const data = {
+      description: postDescription,
+      media_link: postMedia,
+      thumbnail_link: postThumbnail,
+      created_by: 1,
+    };
+
+    createPostMutation.mutate(data, {
+      onSuccess: () => {
+        setPostDescription("");
+        setPostMedia("");
+        setPostThumbnail("");
+      },
+    });
   };
 
   // Renders if loading state is on going (true)
@@ -85,69 +86,99 @@ export default function Index() {
 
   return (
     <View className="flex-1">
-      {/* Edit Modal */}
-      <EditModal
+      {/* Modals */}
+      {/* Card Settings Modal */}
+      <CardSettingsModal
         setEditModal={setEditModal}
+        setDeleteDialog={setDeleteDialog}
         editModal={editModal}
         data={editModalData}
       />
 
-      <ScrollView
-        style={{
-          transform: editModal ? "scale(.95)" : "scale(1)",
-          filter: editModal ? "blur(3)" : "blur(0)",
-        }}
-      >
+      {/* Delete Card Dialog */}
+      <CardDeleteDialog />
+
+      <ScrollView>
         {/* CREATE POST WRAPPER */}
         <View
-          className="justify-center items-center bg-gray-700/10 border p-4 gap-4"
+          className="justify-center items-center bg-gray-700/10 border-b p-4"
           style={{ borderBottomWidth: 1 }}
         >
-          <View className="flex-row gap-2 w-full">
-            {/* Image Wrapper */}
-            <View className="size-16 rounded-full overflow-hidden">
-              <Image
-                resizeMode="cover"
-                className="w-full h-full absolute bg-black"
-              />
-            </View>
-            <TextInput
-              style={{ borderWidth: 1, padding: 10, flex: 1, borderRadius: 10 }}
-              onChangeText={setPostDescription}
-              value={postDescription}
-              placeholder="What's on your mind?"
-            />
-          </View>
-
-          <View className="flex-row gap-2">
-            <TextInput
-              style={{ borderWidth: 1, padding: 10, flex: 1, borderRadius: 10 }}
-              onChangeText={setPostMedia}
-              value={postMedia}
-              placeholder="Media link"
-            />
-            <TextInput
-              style={{ borderWidth: 1, padding: 10, flex: 1, borderRadius: 10 }}
-              onChangeText={setPostThumbnail}
-              value={postThumbnail}
-              placeholder="Thumbnail link"
-            />
-          </View>
-
-          <Pressable
-            className="flex-1 justify-center items-center bg-blue-500 border rounded-md py-3 w-full"
-            android_ripple={{ color: "black" }}
-            onPress={() => {
-              handleCreatePost();
+          <View
+            style={{
+              gap: 15,
+              transform: editModal ? "scale(.95)" : "scale(1)",
+              filter: editModal ? "blur(3)" : "blur(0)",
             }}
           >
-            <Text style={{ fontSize: 20, fontWeight: "bold" }}>Post</Text>
-          </Pressable>
+            {/* Profile and Description */}
+            <View className="flex-row gap-2 w-full">
+              {/* Image Wrapper */}
+              <View className="size-16 rounded-full overflow-hidden">
+                <Image
+                  resizeMode="cover"
+                  className="w-full h-full absolute bg-black"
+                />
+              </View>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  padding: 10,
+                  flex: 1,
+                  borderRadius: 10,
+                }}
+                onChangeText={setPostDescription}
+                value={postDescription}
+                placeholder="What's on your mind?"
+              />
+            </View>
+
+            {/* Media and Thumbnail Link */}
+            <View className="flex-row gap-2 w-full">
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  padding: 10,
+                  flex: 1,
+                  borderRadius: 10,
+                }}
+                onChangeText={setPostMedia}
+                value={postMedia}
+                placeholder="Media link"
+              />
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  padding: 10,
+                  flex: 1,
+                  borderRadius: 10,
+                }}
+                onChangeText={setPostThumbnail}
+                value={postThumbnail}
+                placeholder="Thumbnail link"
+              />
+            </View>
+            <Pressable
+              className="justify-center items-center bg-blue-500 border rounded-md py-3"
+              android_ripple={{ color: "black" }}
+              onPress={() => {
+                handleCreatePost();
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: "bold" }}>Post</Text>
+            </Pressable>
+          </View>
         </View>
         {/* ------------------------- */}
 
         {/* CARD WRAPPER */}
-        <View className="gap-6 p-4">
+        <View
+          className="gap-6 p-4"
+          style={{
+            transform: editModal ? "scale(.95)" : "scale(1)",
+            filter: editModal ? "blur(3)" : "blur(0)",
+          }}
+        >
           {postData?.map((post) => (
             <View
               key={post.id}
@@ -162,9 +193,11 @@ export default function Index() {
 
                 {/* Text Wrapper */}
                 <View className="flex-1 justify-center flex-nowrap overflow-hidden">
-                  <Link href={""} className="text-lg">
-                    User name
-                  </Link>
+                  <Pressable onPress={() => router.push("/(tabs)/profile")}>
+                    <Text className="text-lg text-blue-700">
+                      {post?.userprofile?.first_name ?? "User"}
+                    </Text>
+                  </Pressable>
                   <Text className="text-md">
                     {dateSanitizer(post.created_at)}
                   </Text>
@@ -189,17 +222,30 @@ export default function Index() {
                   {post.description ?? "Description"}
                 </Text>
               </View>
+
               {/* Image Wrapper */}
               <Pressable
-                className="w-full h-52 bg-gray-400 border"
+                className="w-full h-52 bg-gray-400 border overflow-hidden"
                 onPress={() => Linking.openURL(post.media_link)}
                 delayLongPress={200}
                 onLongPress={() => handleOpenEditModal(post)}
               >
                 <Image
                   source={{ uri: post.thumbnail_link }}
+                  style={{ filter: "brightness(0.9) blur(1px)" }}
                   className="size-full"
                   resizeMode="cover"
+                />
+                <Ionicons
+                  name="play-circle-outline"
+                  color={"white"}
+                  size={70}
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }}
                 />
               </Pressable>
               {/* ------------------------- */}

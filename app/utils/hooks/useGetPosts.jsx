@@ -4,11 +4,11 @@ import { DEV_URL } from "../config";
 export default function useGetPosts() {
   return useQuery({
     queryKey: ["posts"],
-    queryFn: getPosts,
+    queryFn: getPostsAPI,
   });
 }
 
-export const getPosts = async () => {
+export const getPostsAPI = async () => {
   const response = await fetch(`${DEV_URL}/posts`, {
     method: "GET",
     headers: {
