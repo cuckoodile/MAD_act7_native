@@ -5,16 +5,14 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useCallback, useState } from "react";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import VideoPlayer from "react-native-video-player";
 import useGetPosts, { getPosts } from "./utils/hooks/useGetPosts";
 import EditModal from "./components/EditModal";
-
-import { videosample } from "../assets/images/videoplayback.mp4";
 
 export default function Index() {
   // const { data: postData, isLoading } = useGetPosts();
@@ -22,7 +20,11 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [editModal, setEditModal] = useState(false);
   const [editModalData, setEditModalData] = useState([]);
-  const [playingVideoId, setPlayingVideoId] = useState(null);
+
+  // Create Post States
+  const [postDescription, setPostDescription] = useState("");
+  const [postMedia, setPostMedia] = useState("");
+  const [postThumbnail, setPostThumbnail] = useState("");
 
   useFocusEffect(
     useCallback(() => {
@@ -55,10 +57,15 @@ export default function Index() {
     setEditModal(true);
   };
 
-  const handlePlayVideo = (id) => {
-    setPlayingVideoId((prevId) => (prevId === id ? null : id));
+  const handleCreatePost = () => {
+    if (!postDescription || !postMedia || !postThumbnail) {
+      return console.log("Please fill all fields!");
+    }
+
+    console.log(postDescription + postMedia + postThumbnail);
   };
 
+  // Renders if loading state is on going (true)
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -67,6 +74,7 @@ export default function Index() {
     );
   }
 
+  // Renders if no data is available
   if (postData == null || postData.length == 0) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -91,7 +99,51 @@ export default function Index() {
         }}
       >
         {/* CREATE POST WRAPPER */}
+        <View
+          className="justify-center items-center bg-gray-700/10 border p-4 gap-4"
+          style={{ borderBottomWidth: 1 }}
+        >
+          <View className="flex-row gap-2 w-full">
+            {/* Image Wrapper */}
+            <View className="size-16 rounded-full overflow-hidden">
+              <Image
+                resizeMode="cover"
+                className="w-full h-full absolute bg-black"
+              />
+            </View>
+            <TextInput
+              style={{ borderWidth: 1, padding: 10, flex: 1, borderRadius: 10 }}
+              onChangeText={setPostDescription}
+              value={postDescription}
+              placeholder="What's on your mind?"
+            />
+          </View>
 
+          <View className="flex-row gap-2">
+            <TextInput
+              style={{ borderWidth: 1, padding: 10, flex: 1, borderRadius: 10 }}
+              onChangeText={setPostMedia}
+              value={postMedia}
+              placeholder="Media link"
+            />
+            <TextInput
+              style={{ borderWidth: 1, padding: 10, flex: 1, borderRadius: 10 }}
+              onChangeText={setPostThumbnail}
+              value={postThumbnail}
+              placeholder="Thumbnail link"
+            />
+          </View>
+
+          <Pressable
+            className="flex-1 justify-center items-center bg-blue-500 border rounded-md py-3 w-full"
+            android_ripple={{ color: "black" }}
+            onPress={() => {
+              handleCreatePost();
+            }}
+          >
+            <Text style={{ fontSize: 20, fontWeight: "bold" }}>Post</Text>
+          </Pressable>
+        </View>
         {/* ------------------------- */}
 
         {/* CARD WRAPPER */}
@@ -137,43 +189,17 @@ export default function Index() {
                   {post.description ?? "Description"}
                 </Text>
               </View>
-
-              {/* Media Wrapper */}
+              {/* Image Wrapper */}
               <Pressable
-                className="w-full h-52 bg-gray-400 border relative"
-                onPress={() => handlePlayVideo(post.id)}
+                className="w-full h-52 bg-gray-400 border"
+                onPress={() => Linking.openURL(post.media_link)}
+                delayLongPress={200}
+                onLongPress={() => handleOpenEditModal(post)}
               >
-                {/* {playingVideoId === post.id ? (
-                  <VideoPlayer
-                    source={{ uri: videosample }}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      bottom: 0,
-                      right: 0,
-                    }}
-                    resizeMode="cover"
-                    useNativeControls
-                    onError={(error) => console.error("Video Error:", error)}
-                  />
-                ) : (
-                  <Image
-                    source={{ uri: post.thumbnail_link }}
-                    className="size-full"
-                    resizeMode="cover"
-                  />
-                )} */}
-                <VideoPlayer
-                  source={{ uri: videosample }}
-                  endWithThumbnail
-                  thumbnail={{
-                    uri: post.thumbnail_link,
-                  }}
-                  onError={(e) => console.log(e)}
-                  showDuration={true}
+                <Image
+                  source={{ uri: post.thumbnail_link }}
+                  className="size-full"
+                  resizeMode="cover"
                 />
               </Pressable>
               {/* ------------------------- */}
@@ -181,7 +207,7 @@ export default function Index() {
               {/* FOOTER CONTAINER */}
               {/* Thumbnail Link Display */}
               <Text className="">{post.thumbnail_link}</Text>
-              <Text className="">{post.thumbnail_link}</Text>
+
               {/* Post Status Counter Wrapper */}
               <View className="flex-row justify-between">
                 {/* Like Wrapper */}
@@ -199,9 +225,9 @@ export default function Index() {
                   style={
                     {
                       // borderLeftWidth: 1,
-                      // borderRightWidth: 1,: 1,
+                      // borderRightWidth: 1,
                       // paddingLeft: 15,
-                      // paddingRight: 15, // paddingRight: 15,
+                      // paddingRight: 15,
                     }
                   }
                   android_ripple={{ color: "black" }}
