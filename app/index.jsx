@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Link, router, useFocusEffect, useNavigation } from "expo-router";
 import {
   Image,
@@ -21,12 +22,36 @@ export default function Index() {
   const [editModal, setEditModal] = useState(false);
   const [editModalData, setEditModalData] = useState([]);
   const [deleteDialog, setDeleteDialog] = useState(false);
+=======
+import {
+  Image,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { useState } from "react";
+
+
+import useGetPosts from "./utils/hooks/posts/useGetPosts";
+import usePostPosts from "./utils/hooks/posts/usePostPosts";
+
+import CardSettingsModal from "./components/CardSettingsModal";
+import CardDeleteDialog from "./components/CardDeleteDialog";
+import CardPatchDialog from "./components/CardPatchDialog";
+import PostCard from "./components/PostCard";
+import CreatePostModal from "./components/CreatePostModal";
+
+export default function Index() {
+  // Query Data
+  const { data: postData, isLoading } = useGetPosts();
+>>>>>>> master
 
   // Create Post States
   const [postDescription, setPostDescription] = useState("");
   const [postMedia, setPostMedia] = useState("");
   const [postThumbnail, setPostThumbnail] = useState("");
 
+<<<<<<< HEAD
   // Hooks
   const createPostMutation = usePostPosts();
 
@@ -38,6 +63,21 @@ export default function Index() {
     });
   };
 
+=======
+  // Card Settings States
+  const [editModal, setEditModal] = useState(false);
+  const [editModalData, setEditModalData] = useState([]);
+
+  // Delete Card States
+  const [deleteDialog, setDeleteDialog] = useState(false);
+
+  // Update Card States
+  const [updateDialog, setUpdateDialog] = useState(false);
+
+  // Hooks
+  const createPostMutation = usePostPosts();
+
+>>>>>>> master
   const handleOpenEditModal = (data) => {
     setEditModalData(data);
     setEditModal(true);
@@ -91,11 +131,16 @@ export default function Index() {
       <CardSettingsModal
         setEditModal={setEditModal}
         setDeleteDialog={setDeleteDialog}
+<<<<<<< HEAD
+=======
+        setUpdateDialog={setUpdateDialog}
+>>>>>>> master
         editModal={editModal}
         data={editModalData}
       />
 
       {/* Delete Card Dialog */}
+<<<<<<< HEAD
       <CardDeleteDialog />
 
       <ScrollView>
@@ -295,6 +340,41 @@ export default function Index() {
             </View>
           ))}
         </View>
+=======
+      <CardDeleteDialog
+        onOpenChange={setDeleteDialog}
+        isOpen={deleteDialog}
+        item={editModalData}
+      />
+
+      {/* Update Card Dialog */}
+      <CardPatchDialog
+        onOpenChange={setUpdateDialog}
+        isOpen={updateDialog}
+        item={editModalData}
+      />
+
+      <ScrollView>
+        {/* CREATE POST WRAPPER */}
+        <CreatePostModal
+          postDescription={postDescription}
+          setPostDescription={setPostDescription}
+          postMedia={postMedia}
+          setPostMedia={setPostMedia}
+          postThumbnail={postThumbnail}
+          setPostThumbnail={setPostThumbnail}
+          handleCreatePost={handleCreatePost}
+          editModal={editModal}
+        />
+        {/* ------------------------- */}
+
+        {/* CARD WRAPPER */}
+        <PostCard
+          postData={postData}
+          editModal={editModal}
+          handleOpenEditModal={handleOpenEditModal}
+        />
+>>>>>>> master
       </ScrollView>
 
       {/* <Link href={"/(tabs)"}>To Tabs</Link> */}

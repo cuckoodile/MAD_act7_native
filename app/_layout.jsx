@@ -8,7 +8,11 @@ const queryClient = new QueryClient();
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
+<<<<<<< HEAD
       <Stack screenOptions={{ headerShown: false }} />
+=======
+      <Stack />
+>>>>>>> master
     </QueryClientProvider>
   );
 }

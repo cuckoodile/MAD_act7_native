@@ -85,8 +85,13 @@ export function PopupModal({ children, variant, onClick, isOpen }) {
           justifyContent: "center",
           paddingVertical: 10,
           borderRadius: 10,
+<<<<<<< HEAD
           top: 0,
           left: 0,
+=======
+          top: "50%",
+          left: "50%",
+>>>>>>> master
           transform: "translate(-50%, -50%)",
         }}
       >
